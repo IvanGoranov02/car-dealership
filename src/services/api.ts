@@ -1,7 +1,9 @@
 import axios from "axios";
 import { LoginCredentials, Car, User } from "../types";
 
-const API_URL = "https://automania.herokuapp.com";
+const API_URL = import.meta.env.DEV
+  ? "/api"
+  : "https://automania.herokuapp.com";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -107,5 +109,15 @@ export const fileService = {
       },
     });
     return response.data.payload;
+  },
+};
+
+// Utility to handle CORS issues with images
+export const imageUtils = {
+  getProxiedImageUrl: (originalUrl: string): string => {
+    if (import.meta.env.DEV) {
+      return `https://images.weserv.nl/?url=${encodeURIComponent(originalUrl)}`;
+    }
+    return originalUrl;
   },
 };
