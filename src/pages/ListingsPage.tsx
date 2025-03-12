@@ -411,7 +411,7 @@ export const ListingsPage = () => {
                       >
                         <SettingsOutlined sx={{ fontSize: 16 }} />
                       </Box>
-                      {/* Десктоп версия - текст */}
+                      {/* Desktop version - text */}
                       <Box
                         sx={{
                           display: { xs: "none", sm: "block" },
