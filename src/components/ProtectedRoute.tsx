@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Box, CircularProgress } from "@mui/material";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,7 +12,19 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          bgcolor: "#F4F4F7",
+        }}
+      >
+        <CircularProgress sx={{ color: "#1F1DEB" }} />
+      </Box>
+    );
   }
 
   if (!user) {

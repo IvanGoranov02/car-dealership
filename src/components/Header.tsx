@@ -10,6 +10,7 @@ import {
   useMediaQuery,
   useTheme,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import { Add, PersonOutline } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +23,7 @@ export const Header = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -33,12 +35,15 @@ export const Header = () => {
 
   const handleLogout = async () => {
     try {
+      setIsLoggingOut(true);
       await logout();
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
+    } finally {
+      setIsLoggingOut(false);
+      handleClose();
     }
-    handleClose();
   };
 
   const handleProfileAction = (event: React.MouseEvent<HTMLElement>) => {
@@ -196,9 +201,16 @@ export const Header = () => {
                 fontFamily: "'Inter', sans-serif",
                 fontSize: 14,
                 py: 1.5,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
               }}
+              disabled={isLoggingOut}
             >
               Log out
+              {isLoggingOut && (
+                <CircularProgress size={20} sx={{ ml: 1, color: "#1F1DEB" }} />
+              )}
             </MenuItem>
           </Menu>
 

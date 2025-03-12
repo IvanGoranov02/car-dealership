@@ -65,7 +65,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     try {
-      setIsLoading(true);
       await authService.logout();
       localStorage.removeItem("token");
       localStorage.removeItem("user");
@@ -75,8 +74,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         err instanceof Error ? err.message : "An error occurred during logout"
       );
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   };
 
