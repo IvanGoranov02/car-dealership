@@ -112,7 +112,7 @@ export const ListingsPage = () => {
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const observer = useRef<IntersectionObserver | null>(null);
-  const itemsPerPage = 12; // Number of cars per page
+  const itemsPerPage = 10; // Number of cars per page
 
   // Adding new state for the active listing being edited in the mobile modal
   const [activeListingId, setActiveListingId] = useState<string | null>(null);
