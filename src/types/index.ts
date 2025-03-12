@@ -26,6 +26,12 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RegisterUserData {
+  email: string;
+  password: string;
+  fullName: string;
+}
+
 export interface ApiError {
   message: string;
   status: number;
@@ -34,6 +40,7 @@ export interface ApiError {
 export interface AuthContextType {
   user: User | null;
   login: (credentials: LoginCredentials) => Promise<void>;
+  register: (userData: RegisterUserData) => Promise<void>;
   logout: () => Promise<void>;
   isLoading: boolean;
   error: string | null;

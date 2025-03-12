@@ -25,9 +25,9 @@ export const CreateListingPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#F5F5F5" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#F4F4F7" }}>
       <Header />
-      <Box sx={{ pt: "80px" }}>
+      <Box sx={{ pt: "64px" }}>
         <ListingForm onSubmit={handleSubmit} mode="create" />
       </Box>
     </Box>

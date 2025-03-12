@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { AuthContextType, User, LoginCredentials } from "../types";
+import {
+  AuthContextType,
+  User,
+  LoginCredentials,
+  RegisterUserData,
+} from "../types";
 import { authService } from "../services/api";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,6 +43,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const register = async (userData: RegisterUserData) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const { user, token } = await authService.register(userData);
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "An error occurred during registration"
+      );
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async () => {
     try {
       setIsLoading(true);
@@ -56,7 +81,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading, error }}>
+    <AuthContext.Provider
+      value={{ user, login, register, logout, isLoading, error }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -22,6 +22,7 @@ import { toast } from "react-toastify";
 import { Car } from "../types";
 // import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import blurSvg from "../assets/blur.svg";
 
 interface CarListing {
   id: string;
@@ -139,14 +140,14 @@ export const ListingsPage = () => {
 
   if (loading) {
     return (
-      <Box sx={{ bgcolor: "#F5F5F5", minHeight: "100vh" }}>
+      <Box sx={{ bgcolor: "#F4F4F7", minHeight: "100vh" }}>
         <Header />
         <Box
           sx={{
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            minHeight: "calc(100vh - 80px)",
+            minHeight: "calc(100vh - 64px)",
             mt: 10,
           }}
         >
@@ -157,7 +158,7 @@ export const ListingsPage = () => {
   }
 
   return (
-    <Box sx={{ bgcolor: "#F5F5F5", minHeight: "100vh" }}>
+    <Box sx={{ bgcolor: "#F4F4F7", minHeight: "100vh" }}>
       <Header />
       <Container
         maxWidth={false}
@@ -191,18 +192,22 @@ export const ListingsPage = () => {
             <Typography
               variant="h1"
               sx={{
-                fontSize: { xs: "24px", sm: "28px" },
-                lineHeight: 1.2,
+                fontSize: "20px",
+                lineHeight: "30px",
                 fontWeight: 700,
-                color: "#000000",
-                fontFamily: "'Inter', sans-serif",
+                color: "#0C0C21",
+                fontFamily: "'Montserrat', sans-serif",
+                textTransform: "uppercase",
+                letterSpacing: "0px",
+                opacity: 1,
+                textAlign: "left",
               }}
             >
               CAR LISTINGS{" "}
               <Box
                 component="span"
                 sx={{
-                  color: "#000000",
+                  color: "#0C0C21",
                   fontSize: "inherit",
                   fontWeight: "inherit",
                 }}
@@ -217,7 +222,7 @@ export const ListingsPage = () => {
               <Grid item xs={1} sm={4} md={3} key={listing.id}>
                 <Card
                   sx={{
-                    borderRadius: "10px",
+                    borderRadius: "5px",
                     boxShadow: "0px 5px 15px #00347026",
                     border: "1px solid #C9C9E3",
                     cursor: "pointer",
@@ -227,6 +232,7 @@ export const ListingsPage = () => {
                     transition: "all 0.3s ease",
                     position: "relative",
                     bgcolor: "#FFFFFF",
+                    maxWidth: "100%",
                     "&:hover": {
                       transform: "translateY(-4px)",
                       boxShadow: "0px 16px 32px rgba(0, 0, 0, 0.16)",
@@ -251,7 +257,7 @@ export const ListingsPage = () => {
                       minWidth: "auto",
                       p: 0.8,
                       fontSize: 11,
-                      fontWeight: 600,
+                      fontWeight: 800,
                       borderRadius: 1,
                       boxShadow: "0px 4px 12px rgba(31, 29, 235, 0.16)",
                       display: hoveredCard === listing.id ? "flex" : "none",
@@ -347,10 +353,10 @@ export const ListingsPage = () => {
                   <Box
                     sx={{
                       position: "relative",
-                      pt: "65%",
-                      bgcolor: "#F5F5F5",
+                      pt: "50%",
+                      bgcolor: "#F4F4F7",
                       overflow: "hidden",
-                      borderRadius: "10px 10px 0 0",
+                      borderRadius: "5px 5px 0 0",
                       m: 0,
                     }}
                   >
@@ -405,22 +411,137 @@ export const ListingsPage = () => {
         </Box>
       </Container>
 
+      {/* Модален прозорец за изтриване */}
+      {deleteDialogOpen && (
+        <Box
+          sx={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 999999,
+          }}
+          onClick={handleDeleteCancel}
+        >
+          <Box
+            component="img"
+            src={blurSvg}
+            alt="Background"
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+          <Box
+            sx={{
+              bgcolor: "#FFFFFF",
+              borderRadius: "5px",
+              maxWidth: "450px",
+              width: "100%",
+              m: 2,
+              boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.15)",
+              overflow: "hidden",
+              position: "relative",
+              zIndex: 1,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Box
+              sx={{
+                fontWeight: 700,
+                fontSize: "18px",
+                textAlign: "left",
+                pt: 3,
+                pb: 1,
+                px: 3,
+                color: "#0C0C21",
+                fontFamily: "'Montserrat', sans-serif",
+              }}
+            >
+              DELETE LISTING
+            </Box>
+            <Box sx={{ px: 3, pb: 2 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "#0C0C21",
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: "14px",
+                  lineHeight: "22px",
+                }}
+              >
+                Are you sure you want to delete this listing from the platform?
+              </Typography>
+            </Box>
+            <Box sx={{ px: 3, pb: 3, pt: 1, display: "flex", gap: 2 }}>
+              <Button
+                onClick={handleDeleteCancel}
+                sx={{
+                  bgcolor: "#FFFFFF",
+                  color: "#1F1DEB",
+                  border: "0.5px solid #1F1DEB",
+                  height: "38px",
+                  width: "100%",
+                  borderRadius: "5px",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  fontFamily: "'Montserrat', sans-serif",
+                  "&:hover": {
+                    bgcolor: "#F8F8FF",
+                    border: "0.5px solid #1F1DEB",
+                  },
+                }}
+              >
+                GO BACK
+              </Button>
+              <Button
+                onClick={handleDeleteConfirm}
+                sx={{
+                  bgcolor: "#E4126B",
+                  color: "#FFFFFF",
+                  height: "38px",
+                  width: "100%",
+                  borderRadius: "5px",
+                  textTransform: "uppercase",
+                  fontWeight: 600,
+                  fontSize: "14px",
+                  fontFamily: "'Montserrat', sans-serif",
+                  "&:hover": {
+                    bgcolor: "#C60D59",
+                  },
+                }}
+              >
+                DELETE
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      {/* Using a hidden dialog to keep accessibility features */}
       <Dialog
-        open={Boolean(deleteDialogOpen)}
+        open={false}
         onClose={handleDeleteCancel}
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
+        PaperProps={{
+          sx: {
+            display: "none",
+          },
+        }}
       >
-        <DialogTitle id="alert-dialog-title">{"Confirm Deletion"}</DialogTitle>
-        <DialogContent>
-          Are you sure you want to delete this listing?
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteCancel}>Cancel</Button>
-          <Button onClick={handleDeleteConfirm} autoFocus>
-            Delete
-          </Button>
-        </DialogActions>
+        <DialogTitle>Hidden</DialogTitle>
+        <DialogContent>Hidden</DialogContent>
+        <DialogActions>Hidden</DialogActions>
       </Dialog>
     </Box>
   );

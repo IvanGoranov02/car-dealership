@@ -28,22 +28,32 @@ const validationSchema = Yup.object({
   password: Yup.string()
     .min(6, "Password must be at least 6 characters")
     .required("Password is required"),
+  fullName: Yup.string()
+    .matches(
+      /^(\S+\s+\S+)$/,
+      "Full name must contain first name and last name separated by space"
+    )
+    .required("Full name is required"),
 });
 
-export const LoginPage: React.FC = () => {
+export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
-  const { login, error, isLoading } = useAuth();
+  const { register, error, isLoading } = useAuth();
   const [showPassword, setShowPassword] = React.useState(false);
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
-  const handleSubmit = async (values: { email: string; password: string }) => {
+  const handleSubmit = async (values: {
+    email: string;
+    password: string;
+    fullName: string;
+  }) => {
     try {
-      await login(values);
-      toast.success("Login successful!");
+      await register(values);
+      toast.success("Registration successful!");
       navigate("/listings");
     } catch {
-      toast.error("Login failed. Please check your credentials.");
+      toast.error("Registration failed. Please try again.");
     }
   };
 
@@ -107,13 +117,13 @@ export const LoginPage: React.FC = () => {
             gutterBottom
             sx={{
               color: "#000000",
-              mb: 8,
+              mb: 6,
               fontSize: "24px",
               fontWeight: 600,
               letterSpacing: "0.1em",
             }}
           >
-            WELCOME BACK
+            CREATE ACCOUNT
           </Typography>
           {error && (
             <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
@@ -121,13 +131,56 @@ export const LoginPage: React.FC = () => {
             </Alert>
           )}
           <Formik
-            initialValues={{ email: "", password: "" }}
+            initialValues={{ email: "", password: "", fullName: "" }}
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
           >
             {({ errors, touched }) => (
               <Form style={{ width: "100%" }}>
-                <Stack spacing={5}>
+                <Stack spacing={4}>
+                  <Box>
+                    <InputLabel
+                      htmlFor="fullName"
+                      sx={{
+                        mb: 1,
+                        color: "#000000",
+                        fontSize: "14px",
+                        fontWeight: 400,
+                      }}
+                    >
+                      Full Name
+                    </InputLabel>
+                    <Field
+                      as={TextField}
+                      id="fullName"
+                      name="fullName"
+                      variant="outlined"
+                      fullWidth
+                      error={touched.fullName && Boolean(errors.fullName)}
+                      helperText={touched.fullName && errors.fullName}
+                      InputProps={{
+                        sx: {
+                          height: "48px",
+                          backgroundColor: "#fff",
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#E0E0E0",
+                            borderRadius: 0,
+                          },
+                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#1F1DEB",
+                          },
+                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "#1F1DEB",
+                            borderWidth: "1px",
+                          },
+                        },
+                      }}
+                      InputLabelProps={{
+                        shrink: true,
+                        sx: { display: "none" },
+                      }}
+                    />
+                  </Box>
                   <Box>
                     <InputLabel
                       htmlFor="email"
@@ -248,34 +301,33 @@ export const LoginPage: React.FC = () => {
                       fontWeight: 600,
                       letterSpacing: "0.1em",
                       boxShadow: "none",
-                      borderRadius: 0,
-                      mt: 5,
+                      mt: 4,
                     }}
                   >
-                    {isLoading ? "Signing in..." : "LOG IN"}
+                    {isLoading ? "REGISTERING..." : "REGISTER"}
                   </Button>
                 </Stack>
-                <Box sx={{ mt: 4, textAlign: "center" }}>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#666666", fontSize: "14px" }}
-                  >
-                    Don't have an account?{" "}
-                    <Link
-                      to="/register"
-                      style={{
-                        color: "#1F1DEB",
-                        textDecoration: "none",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Register
-                    </Link>
-                  </Typography>
-                </Box>
               </Form>
             )}
           </Formik>
+          <Box sx={{ mt: 4, textAlign: "center" }}>
+            <Typography
+              variant="body2"
+              sx={{ color: "#666666", fontSize: "14px" }}
+            >
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                style={{
+                  color: "#1F1DEB",
+                  textDecoration: "none",
+                  fontWeight: 600,
+                }}
+              >
+                Log in
+              </Link>
+            </Typography>
+          </Box>
         </Paper>
       </Container>
     </Box>

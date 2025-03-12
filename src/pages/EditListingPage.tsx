@@ -57,7 +57,7 @@ export const EditListingPage: React.FC = () => {
       <Box
         sx={{
           minHeight: "100vh",
-          backgroundColor: "#F5F5F5",
+          backgroundColor: "#F4F4F7",
           py: "5%",
           px: "5%",
         }}
@@ -81,9 +81,9 @@ export const EditListingPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#F5F5F5" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#F4F4F7" }}>
       <Header />
-      <Box sx={{ pt: "80px" }}>
+      <Box sx={{ pt: "64px" }}>
         <ListingForm
           initialValues={{
             brand: listing.brand,

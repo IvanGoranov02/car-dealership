@@ -13,7 +13,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         flexGrow: 1,
         width: "100%",
         minHeight: "100vh",
-        bgcolor: "#F8F8F8",
+        bgcolor: "#F4F4F7",
       }}
     >
       {children}

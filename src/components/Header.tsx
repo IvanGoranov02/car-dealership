@@ -54,13 +54,13 @@ export const Header = () => {
       position="fixed"
       sx={{
         backgroundColor: "white",
-        boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.12)",
+        boxShadow: "0px 8px 32px rgba(0, 0, 0, 0.18)",
       }}
     >
       <Toolbar
         sx={{
           justifyContent: "space-between",
-          height: 80,
+          height: 64,
           px: { xs: "8px", sm: "2%" },
           width: "100%",
           boxSizing: "border-box",
@@ -93,36 +93,42 @@ export const Header = () => {
               fontFamily: "'Inter', sans-serif",
               display: { xs: "none", sm: "flex" },
               minWidth: "auto",
-              px: 1.5,
-              gap: 0.5,
-              alignItems: "center",
-              justifyContent: "center",
+              p: 0,
               "&:hover": {
                 bgcolor: "transparent",
                 opacity: 0.8,
               },
             }}
-            startIcon={
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.3 }}>
               <PersonOutline
                 sx={{
                   color: user ? "#1F1DEB" : "#666",
-                  fontSize: 32,
+                  fontSize: 30,
                 }}
               />
-            }
-          >
-            {user ? `HI, ${user.fullName.toUpperCase()}` : "LOG IN"}
+              <Box
+                component="span"
+                sx={{
+                  fontWeight: 700,
+                }}
+              >
+                {user ? `HI, ${user.fullName.toUpperCase()}` : "LOG IN"}
+              </Box>
+            </Box>
           </Button>
 
           <Divider
             orientation="vertical"
             flexItem
-            sx={{ bgcolor: "#E0E0E0" }}
+            sx={{
+              bgcolor: "#E0E0E0",
+              width: "2px",
+            }}
           />
 
           <Button
             variant="contained"
-            startIcon={<Add sx={{ fontSize: 20, mr: -0.5 }} />}
             onClick={() => navigate("/listings/new")}
             sx={{
               bgcolor: "#1F1DEB",
@@ -130,20 +136,22 @@ export const Header = () => {
                 bgcolor: "#1816C7",
               },
               height: 36,
-              borderRadius: 2,
+              borderRadius: 1,
               boxShadow: "none",
-              px: 2,
+              px: 0.8,
               fontSize: 14,
               fontWeight: 600,
               display: { xs: "none", sm: "flex" },
               textTransform: "uppercase",
               fontFamily: "'Inter', sans-serif",
-              gap: 0.5,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            ADD LISTING
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.3 }}>
+              <Add sx={{ fontSize: 24 }} />
+              ADD LISTING
+            </Box>
           </Button>
 
           <Menu

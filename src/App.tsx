@@ -12,6 +12,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Layout } from "./components/Layout";
 import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 import { ListingsPage } from "./pages/ListingsPage";
 import { CreateListingPage } from "./pages/CreateListingPage";
 import { EditListingPage } from "./pages/EditListingPage";
@@ -109,6 +110,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route
               path="/dashboard"
               element={

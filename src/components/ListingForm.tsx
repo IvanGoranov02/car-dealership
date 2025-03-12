@@ -78,6 +78,13 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     }
   };
 
+  // Auto-set example URL for testing purposes
+  // React.useEffect(() => {
+  //   if (!existingMainPhoto && !mainPhotoFile) {
+  //     setExistingMainPhoto(EXAMPLE_PHOTO_URL);
+  //   }
+  // }, [existingMainPhoto, mainPhotoFile]);
+
   const handleAdditionalPhotosChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -119,28 +126,49 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 
   const handleSubmit = async (values: ListingFormData) => {
     try {
+      if (!mainPhotoFile && !existingMainPhoto) {
+        toast.error("Main photo is required");
+        return;
+      }
+
       setIsUploading(true);
       let mainPhotoUrl = mainPhotoFile ? "" : existingMainPhoto;
       let additionalPhotoUrls = [...existingAdditionalPhotos];
 
       if (mainPhotoFile) {
-        setUploadProgress((prev) => ({ ...prev, main: true }));
-        const [mainPhotoUpload] = await fileService.uploadFiles([
-          mainPhotoFile,
-        ]);
-        mainPhotoUrl = mainPhotoUpload.url;
+        try {
+          setUploadProgress((prev) => ({ ...prev, main: true }));
+          const [mainPhotoUpload] = await fileService.uploadFiles([
+            mainPhotoFile,
+          ]);
+          mainPhotoUrl = mainPhotoUpload.url;
+        } catch (error) {
+          console.error("Failed to upload main photo:", error);
+          toast.error("Failed to upload main photo. Please try again.");
+          setUploadProgress((prev) => ({ ...prev, main: false }));
+          setIsUploading(false);
+          return;
+        }
         setUploadProgress((prev) => ({ ...prev, main: false }));
       }
 
       if (additionalPhotoFiles.length > 0) {
-        setUploadProgress((prev) => ({ ...prev, additional: true }));
-        const uploadedPhotos = await fileService.uploadFiles(
-          additionalPhotoFiles
-        );
-        additionalPhotoUrls = [
-          ...additionalPhotoUrls,
-          ...uploadedPhotos.map((photo) => photo.url),
-        ];
+        try {
+          setUploadProgress((prev) => ({ ...prev, additional: true }));
+          const uploadedPhotos = await fileService.uploadFiles(
+            additionalPhotoFiles
+          );
+          additionalPhotoUrls = [
+            ...additionalPhotoUrls,
+            ...uploadedPhotos.map((photo) => photo.url),
+          ];
+        } catch (error) {
+          console.error("Failed to upload additional photos:", error);
+          toast.warning(
+            "Failed to upload additional photos. Only the main photo will be used."
+          );
+          // Continue without the additional photos
+        }
         setUploadProgress((prev) => ({ ...prev, additional: false }));
       }
 
@@ -151,10 +179,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
       };
 
       await onSubmit(updatedValues);
-      toast.success(
-        `Car listing ${mode === "create" ? "created" : "updated"} successfully!`
-      );
-      navigate("/");
+      navigate("/listings");
     } catch (error) {
       console.error("Error submitting form: ", error);
       toast.error("Failed to save listing. Please try again.");
@@ -187,8 +212,9 @@ export const ListingForm: React.FC<ListingFormProps> = ({
             }
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
+            validateOnMount={true}
           >
-            {({ errors, touched, isSubmitting, isValid, dirty }) => (
+            {({ errors, touched, isSubmitting, isValid, values }) => (
               <Form id="listing-form">
                 <Box
                   sx={{
@@ -230,23 +256,48 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                     variant="contained"
                     color="primary"
                     type="submit"
-                    disabled={isSubmitting || !isValid || !dirty || isUploading}
+                    disabled={
+                      isSubmitting ||
+                      isUploading ||
+                      // Commented out for testing
+                      !isValid ||
+                      (!mainPhotoFile && !existingMainPhoto) ||
+                      !values.brand ||
+                      !values.model ||
+                      !values.price
+                    }
                     sx={{
                       bgcolor: "#1F1DEB",
-                      color: "white",
+                      color: "#FFFFFF",
                       textTransform: "uppercase",
-                      fontWeight: 600,
+                      fontWeight: 700,
                       fontSize: "14px",
+                      lineHeight: "20px",
+                      fontFamily: "'Montserrat', sans-serif",
+                      letterSpacing: "0px",
+                      textAlign: "center",
+                      opacity: 1,
                       py: 1,
-                      px: 3,
-                      borderRadius: 2,
-                      fontFamily: "'Inter', sans-serif",
+                      width: "120px",
+                      height: "38px",
+                      borderRadius: "5px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
                       "&:hover": {
                         bgcolor: "#1816C4",
                       },
                       "&:disabled": {
-                        bgcolor: "#9E9E9E",
-                        color: "#F5F5F5",
+                        bgcolor: "#8F8EF5",
+                        color: "#FFFFFF",
+                        width: "120px",
+                        height: "38px",
+                        borderRadius: "5px",
+                        opacity: 0.8,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
                       },
                     }}
                   >
@@ -261,12 +312,19 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                             marginLeft: "-12px",
                           }}
                         />
-                        <span style={{ visibility: "hidden" }}>
+                        <span
+                          style={{ visibility: "hidden", whiteSpace: "nowrap" }}
+                        >
                           SAVE LISTING
                         </span>
                       </>
                     ) : (
-                      "SAVE LISTING"
+                      <Box
+                        component="span"
+                        sx={{ whiteSpace: "nowrap", overflow: "hidden" }}
+                      >
+                        SAVE LISTING
+                      </Box>
                     )}
                   </Button>
                 </Box>
@@ -276,11 +334,15 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                     variant="subtitle1"
                     sx={{
                       mb: 2,
-                      color: "#000",
+                      color: "#0C0C21",
                       textTransform: "uppercase",
                       fontWeight: 600,
-                      fontSize: "14px",
-                      fontFamily: "'Inter', sans-serif",
+                      fontSize: "18px",
+                      lineHeight: "28px",
+                      fontFamily: "'Montserrat', sans-serif",
+                      letterSpacing: "0px",
+                      opacity: 1,
+                      textAlign: "left",
                     }}
                   >
                     GENERAL INFORMATION
@@ -292,9 +354,14 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                         variant="body2"
                         sx={{
                           mb: 0.5,
-                          fontFamily: "'Inter', sans-serif",
-                          fontSize: "12px",
-                          color: "#666",
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 300,
+                          fontSize: "16px",
+                          lineHeight: "24px",
+                          color: "#0C0C21",
+                          letterSpacing: "0px",
+                          opacity: 1,
+                          textAlign: "left",
                         }}
                       >
                         Brand
@@ -321,9 +388,14 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                         variant="body2"
                         sx={{
                           mb: 0.5,
-                          fontFamily: "'Inter', sans-serif",
-                          fontSize: "12px",
-                          color: "#666",
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 300,
+                          fontSize: "16px",
+                          lineHeight: "24px",
+                          color: "#0C0C21",
+                          letterSpacing: "0px",
+                          opacity: 1,
+                          textAlign: "left",
                         }}
                       >
                         Model
@@ -350,9 +422,14 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                         variant="body2"
                         sx={{
                           mb: 0.5,
-                          fontFamily: "'Inter', sans-serif",
-                          fontSize: "12px",
-                          color: "#666",
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 300,
+                          fontSize: "16px",
+                          lineHeight: "24px",
+                          color: "#0C0C21",
+                          letterSpacing: "0px",
+                          opacity: 1,
+                          textAlign: "left",
                         }}
                       >
                         Price
@@ -492,8 +569,12 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                               {mainPhotoFile?.name
                                 ?.split(".")
                                 .slice(0, -1)
-                                .join(".") || "IMAGE-NEW-313"}
-                              .PNG
+                                .join(".") || "Photo"}
+                              {mainPhotoFile?.name
+                                ? mainPhotoFile.name.substring(
+                                    mainPhotoFile.name.lastIndexOf(".")
+                                  )
+                                : ".jpg"}
                             </Typography>
                             <IconButton
                               size="small"
@@ -568,7 +649,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                     .join(".")}${mainPhotoFile.name.substring(
                                     mainPhotoFile.name.lastIndexOf(".")
                                   )}`
-                                : "IMAGE-NEW-313.PNG"}
+                                : "Photo 1.jpg"}
                             </Typography>
                             <IconButton
                               size="small"
@@ -589,50 +670,58 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                             </IconButton>
                           </Box>
                         ) : (
-                          <label
-                            htmlFor="main-photo-input"
-                            style={{ cursor: "pointer" }}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "flex-start",
+                              gap: 1,
+                            }}
                           >
-                            <Box
-                              sx={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "flex-start",
-                                border: "2px dashed #1F1DEB",
-                                borderRadius: 2,
-                                pl: 2,
-                                py: 0.5,
-                                minWidth: "240px",
-                                cursor: "pointer",
-                                "&:hover": {
-                                  borderColor: "#1816C4",
-                                },
-                              }}
+                            <label
+                              htmlFor="main-photo-input"
+                              style={{ cursor: "pointer" }}
                             >
-                              <AddIcon
-                                sx={{ fontSize: 20, mr: 1, color: "#1F1DEB" }}
-                              />
-                              <Typography
-                                variant="body2"
+                              <Box
                                 sx={{
-                                  fontWeight: 700,
-                                  fontFamily: "Montserrat, sans-serif",
-                                  fontSize: "14px",
-                                  lineHeight: "20px",
-                                  color: "#1F1DEB",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  border: "0.5px dashed #1F1DEB",
+                                  borderRadius: "5px",
+                                  width: "200px",
+                                  height: "42px",
+                                  cursor: "pointer",
+                                  "&:hover": {
+                                    borderColor: "#1816C4",
+                                  },
                                 }}
                               >
-                                UPLOAD
-                              </Typography>
-                            </Box>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleMainPhotoChange}
-                              style={{ display: "none" }}
-                              id="main-photo-input"
-                            />
-                          </label>
+                                <AddIcon
+                                  sx={{ fontSize: 20, mr: 1, color: "#1F1DEB" }}
+                                />
+                                <Typography
+                                  variant="body2"
+                                  sx={{
+                                    fontWeight: 700,
+                                    fontFamily: "Montserrat, sans-serif",
+                                    fontSize: "14px",
+                                    lineHeight: "20px",
+                                    color: "#1F1DEB",
+                                  }}
+                                >
+                                  UPLOAD
+                                </Typography>
+                              </Box>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleMainPhotoChange}
+                                style={{ display: "none" }}
+                                id="main-photo-input"
+                              />
+                            </label>
+                          </Box>
                         )}
                       </Box>
 
@@ -660,14 +749,10 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                               display: "inline-flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              border: "2px dashed #1F1DEB",
-                              borderRadius: 2,
-                              pl: 1.5,
-                              pr: 0.25,
-                              py: 0.25,
-                              minWidth: "180px",
-                              maxWidth: "180px",
-                              height: "28px",
+                              border: "0.5px dashed #1F1DEB",
+                              borderRadius: "5px",
+                              width: "200px",
+                              height: "42px",
                               cursor: "pointer",
                               "&:hover": {
                                 borderColor: "#1816C4",
@@ -743,7 +828,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                   marginRight: 1,
                                 }}
                               >
-                                {`IMAGE-NEW-${index + 1}.PNG`}
+                                {`Photo ${index + 1}.jpg`}
                               </Typography>
                               <IconButton
                                 size="small"
@@ -812,7 +897,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                         index
                                       ].name.lastIndexOf(".")
                                     )}`
-                                  : `IMAGE-NEW-${index + 1}.PNG`}
+                                  : `Photo ${index + 1}.jpg`}
                               </Typography>
                               <IconButton
                                 size="small"

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { LoginCredentials, Car, User } from "../types";
 
 const API_URL = import.meta.env.DEV
@@ -41,6 +41,15 @@ export const authService = {
     return response.data;
   },
 
+  register: async (userData: {
+    email: string;
+    password: string;
+    fullName: string;
+  }): Promise<{ user: User; token: string }> => {
+    const response = await api.post("/user/register", userData);
+    return response.data;
+  },
+
   logout: async (): Promise<void> => {
     await api.put("/user/logout");
   },
@@ -80,6 +89,9 @@ export const listingService = {
 
   createListing: async (listing: Omit<Car, "id">): Promise<Car> => {
     const response = await api.post("/listing/create", listing);
+    if (response.data.success === false) {
+      throw new Error(response.data.message || "Failed to create listing");
+    }
     return response.data.payload;
   },
 
@@ -103,18 +115,35 @@ export const fileService = {
       formData.append("images", file);
     });
 
-    const response = await api.post("/file/upload", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data.payload;
+    try {
+      // Making request without Content-Type header for file uploads
+      const response = await axios.post(`${API_URL}/file/upload`, formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!response.data || !response.data.success) {
+        console.error("File upload failed:", response.data);
+        throw new Error(response.data?.message || "File upload failed");
+      }
+
+      return response.data.payload;
+    } catch (error: unknown) {
+      console.error("Error uploading files:", error);
+      if (error instanceof AxiosError && error.response) {
+        console.error("Response data:", error.response.data);
+        console.error("Response status:", error.response.status);
+      }
+      throw error;
+    }
   },
 };
 
 // Utility to handle CORS issues with images
 export const imageUtils = {
   getProxiedImageUrl: (originalUrl: string): string => {
+    // Using a proxy in dev mode to avoid CORS issues
     if (import.meta.env.DEV) {
       return `https://images.weserv.nl/?url=${encodeURIComponent(originalUrl)}`;
     }
