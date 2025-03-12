@@ -208,14 +208,15 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 
   return (
     <Box sx={{ bgcolor: "#F8F8F8", minHeight: "100vh", py: 4 }}>
-      <Container maxWidth={false} sx={{ px: { xs: "8px", sm: "2%" } }}>
+      <Container maxWidth={false} sx={{ px: { xs: "16px", sm: "2%" } }}>
         <Paper
           elevation={2}
           sx={{
             overflow: "hidden",
             width: "100%",
             mt: "24px",
-            mx: "50px",
+            mx: { xs: "auto", sm: "50px" },
+            px: { xs: 0, sm: 0 },
           }}
         >
           <Formik
@@ -507,7 +508,8 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                         lineHeight: "28px",
                         color: "#0C0C21",
                         textTransform: "uppercase",
-                        mb: 2,
+                        mb: 0,
+                        textAlign: { xs: "left", sm: "left" },
                       }}
                     >
                       Photos
@@ -515,12 +517,22 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                     <Box
                       sx={{
                         display: "flex",
-                        flexDirection: "row",
+                        flexDirection: { xs: "column", sm: "row" },
                         gap: 4,
-                        alignItems: "flex-start",
+                        alignItems: { xs: "flex-start", sm: "flex-start" },
+                        justifyContent: { xs: "flex-start", sm: "flex-start" },
+                        width: "100%",
                       }}
                     >
-                      <Box sx={{ flex: "0 0 auto" }}>
+                      <Box
+                        sx={{
+                          flex: "0 0 auto",
+                          width: { xs: "100%", sm: "auto" },
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: { xs: "flex-start", sm: "flex-start" },
+                        }}
+                      >
                         <Typography
                           variant="subtitle1"
                           sx={{
@@ -530,7 +542,8 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                             lineHeight: "24px",
                             color: "#0C0C21",
                             mb: 1,
-                            textAlign: "left",
+                            textAlign: { xs: "left", sm: "left" },
+                            width: "100%",
                           }}
                         >
                           Main photo
@@ -539,7 +552,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                         {existingMainPhoto ? (
                           <Box
                             sx={{
-                              display: "inline-flex",
+                              display: { xs: "flex", sm: "inline-flex" },
                               alignItems: "center",
                               justifyContent: "center",
                               border: "1px solid #1F1DEB",
@@ -552,6 +565,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                               height: "28px",
                               color: "#1F1DEB",
                               position: "relative",
+                              mx: { xs: "0", sm: 0 },
                             }}
                           >
                             {uploadProgress.main && (
@@ -609,7 +623,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                         ) : mainPhotoPreview ? (
                           <Box
                             sx={{
-                              display: "inline-flex",
+                              display: { xs: "flex", sm: "inline-flex" },
                               alignItems: "center",
                               justifyContent: "center",
                               border: "1px solid #1F1DEB",
@@ -622,6 +636,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                               height: "28px",
                               color: "#1F1DEB",
                               position: "relative",
+                              mx: { xs: "0", sm: 0 },
                             }}
                           >
                             {uploadProgress.main && (
@@ -679,10 +694,15 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                         ) : (
                           <Box
                             sx={{
+                              flex: "0 0 auto",
                               display: "flex",
                               flexDirection: "column",
-                              alignItems: "flex-start",
+                              alignItems: {
+                                xs: "flex-start",
+                                sm: "flex-start",
+                              },
                               gap: 1,
+                              width: "100%",
                             }}
                           >
                             <label
@@ -696,8 +716,8 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                   justifyContent: "center",
                                   border: "0.5px dashed #1F1DEB",
                                   borderRadius: "5px",
-                                  width: "200px",
-                                  height: "42px",
+                                  width: { xs: "50px", sm: "200px" },
+                                  height: { xs: "50px", sm: "42px" },
                                   cursor: "pointer",
                                   "&:hover": {
                                     borderColor: "#1816C4",
@@ -705,7 +725,11 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                 }}
                               >
                                 <AddIcon
-                                  sx={{ fontSize: 20, mr: 1, color: "#1F1DEB" }}
+                                  sx={{
+                                    fontSize: 20,
+                                    mr: { xs: 0, sm: 1 },
+                                    color: "#1F1DEB",
+                                  }}
                                 />
                                 <Typography
                                   variant="body2"
@@ -715,6 +739,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                     fontSize: "14px",
                                     lineHeight: "20px",
                                     color: "#1F1DEB",
+                                    display: { xs: "none", sm: "block" },
                                   }}
                                 >
                                   UPLOAD
@@ -732,7 +757,15 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                         )}
                       </Box>
 
-                      <Box sx={{ flex: "1 1 auto" }}>
+                      <Box
+                        sx={{
+                          flex: "1 1 auto",
+                          width: { xs: "100%", sm: "auto" },
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: { xs: "flex-start", sm: "flex-start" },
+                        }}
+                      >
                         <Typography
                           variant="subtitle1"
                           sx={{
@@ -742,13 +775,25 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                             lineHeight: "24px",
                             color: "#0C0C21",
                             mb: 1,
-                            textAlign: "left",
+                            textAlign: { xs: "left", sm: "left" },
+                            width: "100%",
                           }}
                         >
                           Additional photos
                         </Typography>
 
-                        <Box sx={{ display: "flex", gap: 1 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 1,
+                            justifyContent: {
+                              xs: "flex-start",
+                              sm: "flex-start",
+                            },
+                            flexWrap: "wrap",
+                            width: "100%",
+                          }}
+                        >
                           <Box
                             component="label"
                             htmlFor="additional-photos-input"
@@ -758,8 +803,8 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                               justifyContent: "center",
                               border: "0.5px dashed #1F1DEB",
                               borderRadius: "5px",
-                              width: "200px",
-                              height: "42px",
+                              width: { xs: "50px", sm: "200px" },
+                              height: { xs: "50px", sm: "42px" },
                               cursor: "pointer",
                               "&:hover": {
                                 borderColor: "#1816C4",
@@ -767,7 +812,11 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                             }}
                           >
                             <AddIcon
-                              sx={{ fontSize: 20, mr: 1, color: "#1F1DEB" }}
+                              sx={{
+                                fontSize: 20,
+                                mr: { xs: 0, sm: 1 },
+                                color: "#1F1DEB",
+                              }}
                             />
                             <Typography
                               variant="body2"
@@ -777,6 +826,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                 fontSize: "14px",
                                 lineHeight: "20px",
                                 color: "#1F1DEB",
+                                display: { xs: "none", sm: "block" },
                               }}
                             >
                               UPLOAD
@@ -795,7 +845,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                             <Box
                               key={`existing-${index}`}
                               sx={{
-                                display: "inline-flex",
+                                display: { xs: "flex", sm: "inline-flex" },
                                 alignItems: "center",
                                 justifyContent: "center",
                                 border: "1px solid #1F1DEB",
@@ -808,6 +858,8 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                 height: "28px",
                                 color: "#1F1DEB",
                                 position: "relative",
+                                mx: { xs: "0", sm: 0 },
+                                my: 0.5,
                               }}
                             >
                               {uploadProgress.additional && index === 0 && (
@@ -857,7 +909,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                             <Box
                               key={`new-${index}`}
                               sx={{
-                                display: "inline-flex",
+                                display: { xs: "flex", sm: "inline-flex" },
                                 alignItems: "center",
                                 justifyContent: "center",
                                 border: "1px solid #1F1DEB",
@@ -870,6 +922,8 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                 height: "28px",
                                 color: "#1F1DEB",
                                 position: "relative",
+                                mx: { xs: "0", sm: 0 },
+                                my: 0.5,
                               }}
                             >
                               {uploadProgress.additional && index === 0 && (

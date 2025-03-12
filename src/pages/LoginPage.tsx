@@ -14,6 +14,8 @@ import {
   InputLabel,
   IconButton,
   InputAdornment,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useAuth } from "../context/AuthContext";
@@ -34,6 +36,8 @@ export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, error, isLoading } = useAuth();
   const [showPassword, setShowPassword] = React.useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -51,6 +55,7 @@ export const LoginPage: React.FC = () => {
     <Box
       sx={{
         minHeight: "100vh",
+        width: "100vw",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -58,6 +63,7 @@ export const LoginPage: React.FC = () => {
         backgroundSize: "cover",
         backgroundPosition: "center",
         position: "relative",
+        overflow: "hidden",
         "&::before": {
           content: '""',
           position: "absolute",
@@ -68,7 +74,6 @@ export const LoginPage: React.FC = () => {
           background:
             "linear-gradient(180deg, #1F1DEB 0%, rgba(31, 29, 235, 0.76) 100%)",
           opacity: 0.69,
-          borderRadius: "5px",
         },
       }}
     >
@@ -77,29 +82,38 @@ export const LoginPage: React.FC = () => {
         sx={{
           position: "relative",
           zIndex: 1,
-          width: "500px",
+          width: isMobile ? "90%" : "400px",
           p: 0,
+          my: 4,
+          ml: { xs: 0, sm: 0 },
+          mr: { xs: 0, sm: 0 },
         }}
       >
         <Paper
-          elevation={0}
+          elevation={3}
           sx={{
-            py: 10,
-            px: 6,
+            py: isMobile ? 8 : 12,
+            px: isMobile ? 6 : 8,
+            mx: isMobile ? 0 : -10,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             width: "100%",
+            maxWidth: isMobile ? "75%" : "100%",
             bgcolor: "background.paper",
-            borderRadius: 0,
-            boxShadow: "none",
+            borderRadius: { xs: 4, sm: 1 },
+            boxShadow: isMobile ? "0px 4px 20px rgba(0, 0, 0, 0.15)" : "none",
           }}
         >
           <Box
             component="img"
             src={logo}
             alt="AutoMania Logo"
-            sx={{ width: 280, mb: 8 }}
+            sx={{
+              width: isMobile ? 180 : 280,
+              mb: isMobile ? 4 : 8,
+              color: "#1F1DEB",
+            }}
           />
           <Typography
             variant="h1"
@@ -107,10 +121,12 @@ export const LoginPage: React.FC = () => {
             gutterBottom
             sx={{
               color: "#000000",
-              mb: 8,
-              fontSize: "24px",
+              mb: isMobile ? 4 : 8,
+              fontSize: { xs: "24px", sm: "24px" },
               fontWeight: 600,
               letterSpacing: "0.1em",
+              fontFamily: "'Montserrat', sans-serif",
+              textAlign: "center",
             }}
           >
             WELCOME BACK
@@ -127,15 +143,16 @@ export const LoginPage: React.FC = () => {
           >
             {({ errors, touched }) => (
               <Form style={{ width: "100%" }}>
-                <Stack spacing={5}>
+                <Stack spacing={isMobile ? 4 : 5}>
                   <Box>
                     <InputLabel
                       htmlFor="email"
                       sx={{
                         mb: 1,
                         color: "#000000",
-                        fontSize: "14px",
-                        fontWeight: 400,
+                        fontSize: "16px",
+                        fontWeight: 500,
+                        fontFamily: "'Montserrat', sans-serif",
                       }}
                     >
                       Email
@@ -146,15 +163,16 @@ export const LoginPage: React.FC = () => {
                       name="email"
                       variant="outlined"
                       fullWidth
+                      placeholder="johndoe@gmail.com"
                       error={touched.email && Boolean(errors.email)}
                       helperText={touched.email && errors.email}
                       InputProps={{
                         sx: {
                           height: "48px",
-                          backgroundColor: "#fff",
+                          backgroundColor: "#F4F4F7",
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E0E0E0",
-                            borderRadius: 0,
+                            borderRadius: 1.5,
                           },
                           "&:hover .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#1F1DEB",
@@ -163,6 +181,8 @@ export const LoginPage: React.FC = () => {
                             borderColor: "#1F1DEB",
                             borderWidth: "1px",
                           },
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontSize: "16px",
                         },
                       }}
                       InputLabelProps={{
@@ -177,8 +197,9 @@ export const LoginPage: React.FC = () => {
                       sx={{
                         mb: 1,
                         color: "#000000",
-                        fontSize: "14px",
-                        fontWeight: 400,
+                        fontSize: "16px",
+                        fontWeight: 500,
+                        fontFamily: "'Montserrat', sans-serif",
                       }}
                     >
                       Password
@@ -213,10 +234,10 @@ export const LoginPage: React.FC = () => {
                         ),
                         sx: {
                           height: "48px",
-                          backgroundColor: "#fff",
+                          backgroundColor: "#F4F4F7",
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#E0E0E0",
-                            borderRadius: 0,
+                            borderRadius: 1.5,
                           },
                           "&:hover .MuiOutlinedInput-notchedOutline": {
                             borderColor: "#1F1DEB",
@@ -225,6 +246,8 @@ export const LoginPage: React.FC = () => {
                             borderColor: "#1F1DEB",
                             borderWidth: "1px",
                           },
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontSize: "16px",
                         },
                       }}
                       InputLabelProps={{
@@ -248,17 +271,23 @@ export const LoginPage: React.FC = () => {
                       fontWeight: 600,
                       letterSpacing: "0.1em",
                       boxShadow: "none",
-                      borderRadius: 0,
-                      mt: 5,
+                      borderRadius: 1.5,
+                      mt: isMobile ? 6 : 6,
+                      textTransform: "uppercase",
+                      fontFamily: "'Montserrat', sans-serif",
                     }}
                   >
                     {isLoading ? "Signing in..." : "LOG IN"}
                   </Button>
                 </Stack>
-                <Box sx={{ mt: 4, textAlign: "center" }}>
+                <Box sx={{ mt: 5, textAlign: "center" }}>
                   <Typography
                     variant="body2"
-                    sx={{ color: "#666666", fontSize: "14px" }}
+                    sx={{
+                      color: "#666666",
+                      fontSize: "16px",
+                      fontFamily: "'Montserrat', sans-serif",
+                    }}
                   >
                     Don't have an account?{" "}
                     <Link

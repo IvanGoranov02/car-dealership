@@ -124,6 +124,7 @@ export const Header = () => {
             sx={{
               bgcolor: "#E0E0E0",
               width: "2px",
+              display: { xs: "none", sm: "block" },
             }}
           />
 
@@ -150,7 +151,19 @@ export const Header = () => {
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.3 }}>
               <Add sx={{ fontSize: 24 }} />
-              ADD LISTING
+              <Box
+                sx={{
+                  display: { xs: "none", sm: "block" },
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  lineHeight: "20px",
+                  letterSpacing: 0,
+                  fontStyle: "normal",
+                }}
+              >
+                ADD LISTING
+              </Box>
             </Box>
           </Button>
 
@@ -190,15 +203,52 @@ export const Header = () => {
           </Menu>
 
           {isMobile && (
-            <IconButton
-              onClick={() => navigate("/listings/new")}
+            <Box
               sx={{
-                color: "#1F1DEB",
-                p: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
               }}
             >
-              <Add />
-            </IconButton>
+              <IconButton
+                onClick={handleProfileAction}
+                sx={{
+                  color: user ? "#1F1DEB" : "#666",
+                  p: 0.5,
+                }}
+              >
+                <PersonOutline sx={{ fontSize: 28 }} />
+              </IconButton>
+
+              <Divider
+                orientation="vertical"
+                sx={{
+                  bgcolor: "#787884",
+                  width: "1px",
+                  height: "30px",
+                  alignSelf: "center",
+                  my: "auto",
+                }}
+              />
+
+              <IconButton
+                onClick={() => navigate("/listings/new")}
+                sx={{
+                  color: "#FFFFFF",
+                  bgcolor: "#1F1DEB",
+                  p: 0.5,
+                  ml: 0.5,
+                  borderRadius: "4px",
+                  minWidth: "32px",
+                  minHeight: "32px",
+                  "&:hover": {
+                    bgcolor: "#1816C7",
+                  },
+                }}
+              >
+                <Add sx={{ fontSize: 24 }} />
+              </IconButton>
+            </Box>
           )}
         </Box>
       </Toolbar>

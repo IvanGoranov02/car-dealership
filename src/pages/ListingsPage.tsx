@@ -15,7 +15,7 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import { Edit, Delete, Settings } from "@mui/icons-material";
+import { Edit, Delete, SettingsOutlined } from "@mui/icons-material";
 import { Header } from "../components/Header";
 import { listingService, imageUtils } from "../services/api";
 import { toast } from "react-toastify";
@@ -100,6 +100,9 @@ export const ListingsPage = () => {
   const observer = useRef<IntersectionObserver | null>(null);
   const itemsPerPage = 12; // Number of cars per page
 
+  // Adding new state for the active listing being edited in the mobile modal
+  const [activeListingId, setActiveListingId] = useState<string | null>(null);
+
   const lastElementRef = useCallback(
     (node: HTMLElement | null) => {
       if (loading || loadingMore) return;
@@ -131,10 +134,14 @@ export const ListingsPage = () => {
     event: React.MouseEvent<HTMLElement>,
     listingId: string
   ) => {
+    // For desktop version, keep the original behavior
     setAnchorEl((prevState) => ({
       ...prevState,
       [listingId]: event.currentTarget,
     }));
+
+    // For mobile version, set the active listing
+    setActiveListingId(listingId);
   };
 
   const handleMenuClose = (listingId: string) => {
@@ -142,6 +149,9 @@ export const ListingsPage = () => {
       ...prevState,
       [listingId]: null,
     }));
+
+    // Close the mobile modal as well
+    setActiveListingId(null);
   };
 
   const handleEdit = (listingId: string) => {
@@ -251,7 +261,7 @@ export const ListingsPage = () => {
         maxWidth={false}
         disableGutters
         sx={{
-          mt: "5%",
+          mt: { xs: "80px", sm: "5%" },
           mb: "5%",
           px: { xs: "8px", sm: "2%" },
           width: "100%",
@@ -354,13 +364,16 @@ export const ListingsPage = () => {
                         top: 10,
                         right: 10,
                         zIndex: 999,
-                        bgcolor: "#1F1DEB",
+                        bgcolor: user ? "#1F1DEB" : "#666",
                         color: "white",
-                        minWidth: "auto",
-                        p: 0.8,
-                        fontSize: 11,
+                        minWidth: { xs: "unset", sm: "auto" },
+                        padding: { xs: "2px", sm: "6px 6px" },
+                        width: { xs: "22px", sm: "auto" },
+                        height: { xs: "22px", sm: "30px" },
+                        lineHeight: { xs: 0, sm: "normal" },
+                        fontSize: { xs: 11, sm: 13 },
                         fontWeight: 800,
-                        borderRadius: 1,
+                        borderRadius: { xs: "4px", sm: 1 },
                         boxShadow: "0px 4px 12px rgba(31, 29, 235, 0.16)",
                         display:
                           hoveredCard === listing.id ||
@@ -368,15 +381,47 @@ export const ListingsPage = () => {
                             ? "flex"
                             : "none",
                         alignItems: "center",
-                        gap: 0.2,
+                        justifyContent: { xs: "center", sm: "flex-start" },
+                        gap: { xs: 0, sm: 0 },
                         "&:hover": {
                           bgcolor: "#1816C7",
                           boxShadow: "0px 8px 16px rgba(31, 29, 235, 0.24)",
                         },
                       }}
-                      startIcon={<Settings sx={{ fontSize: 14 }} />}
+                      startIcon={
+                        <Box sx={{ display: { xs: "none", sm: "flex" } }}>
+                          <SettingsOutlined
+                            sx={{
+                              fontSize: 18,
+                              mr: 0.3,
+                              ml: 0.3,
+                            }}
+                          />
+                        </Box>
+                      }
                     >
-                      MANAGE
+                      {/* Mobile version - icon only */}
+                      <Box
+                        sx={{
+                          display: { xs: "flex", sm: "none" },
+                          justifyContent: "center",
+                          lineHeight: 0,
+                          pr: 0.5,
+                        }}
+                      >
+                        <SettingsOutlined sx={{ fontSize: 16 }} />
+                      </Box>
+                      {/* Десктоп версия - текст */}
+                      <Box
+                        sx={{
+                          display: { xs: "none", sm: "block" },
+                          fontSize: "13px",
+                          fontWeight: 1000,
+                          ml: -0.5,
+                        }}
+                      >
+                        MANAGE
+                      </Box>
                     </Button>
                   )}
 
@@ -387,6 +432,11 @@ export const ListingsPage = () => {
                     onClose={() => handleMenuClose(listing.id)}
                     MenuListProps={{
                       "aria-labelledby": `menu-button-${listing.id}`,
+                    }}
+                    sx={{
+                      "& .MuiMenu-paper": {
+                        display: { xs: "none", sm: "block" },
+                      },
                     }}
                     anchorOrigin={{
                       vertical: "bottom",
@@ -461,6 +511,7 @@ export const ListingsPage = () => {
                       Delete Listing
                     </MenuItem>
                   </Menu>
+
                   <Box
                     sx={{
                       position: "relative",
@@ -553,6 +604,138 @@ export const ListingsPage = () => {
           )}
         </Box>
       </Container>
+
+      {/* Mobile version of the menu - modal window from the bottom */}
+      {activeListingId && (
+        <Box
+          sx={{
+            display: { xs: "block", sm: "none" },
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: "100%",
+            height: "100%",
+            bgcolor: "rgba(0, 0, 0, 0.5)",
+            zIndex: 99999,
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleMenuClose(activeListingId);
+          }}
+        >
+          <Box
+            sx={{
+              position: "fixed",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              bgcolor: "#FFFFFF",
+              width: "100%",
+              borderTopLeftRadius: "16px",
+              borderTopRightRadius: "16px",
+              boxShadow: "0px -4px 12px rgba(0, 0, 0, 0.1)",
+              overflow: "hidden",
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Box sx={{ textAlign: "center", p: 2 }}>
+              <Typography
+                sx={{
+                  fontWeight: 600,
+                  fontSize: 16,
+                  color: "#0C0C21",
+                  fontFamily: "'Montserrat', sans-serif",
+                }}
+              >
+                Please select
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+                "&:active": {
+                  bgcolor: "rgba(0, 0, 0, 0.03)",
+                },
+              }}
+              onClick={() => handleEdit(activeListingId)}
+            >
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mr: 2,
+                }}
+              >
+                <Edit sx={{ fontSize: 24, color: "#1F1DEB" }} />
+              </Box>
+              <Typography
+                sx={{
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: "#0C0C21",
+                }}
+              >
+                Edit listing
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                borderTop: "1px solid #E0E0E0",
+                mx: 0,
+              }}
+            />
+
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+                display: "flex",
+                alignItems: "center",
+                cursor: "pointer",
+                pb: 3,
+                "&:active": {
+                  bgcolor: "rgba(0, 0, 0, 0.03)",
+                },
+              }}
+              onClick={() => handleDeleteClick(activeListingId)}
+            >
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  mr: 2,
+                }}
+              >
+                <Delete sx={{ fontSize: 24, color: "#E4126B" }} />
+              </Box>
+              <Typography
+                sx={{
+                  fontSize: 16,
+                  fontWeight: 500,
+                  color: "#0C0C21",
+                }}
+              >
+                Delete Listing
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      )}
 
       {/* Delete dialog */}
       {deleteDialogOpen && (
