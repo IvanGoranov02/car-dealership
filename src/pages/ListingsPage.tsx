@@ -14,8 +14,16 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  IconButton,
 } from "@mui/material";
-import { Edit, Delete, SettingsOutlined } from "@mui/icons-material";
+import {
+  Edit,
+  Delete,
+  SettingsOutlined,
+  ArrowBackIos,
+  ArrowForwardIos,
+  FiberManualRecord,
+} from "@mui/icons-material";
 import { Header } from "../components/Header";
 import { listingService, imageUtils } from "../services/api";
 import { toast } from "react-toastify";
@@ -30,6 +38,7 @@ interface CarListing {
   model: string;
   price: number;
   mainPhoto: string;
+  additionalPhotos: string[];
   userId: string;
 }
 
@@ -93,6 +102,11 @@ export const ListingsPage = () => {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
 
+  // State for photo slideshow
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState<{
+    [key: string]: number;
+  }>({});
+
   // Infinite scroll states
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -128,6 +142,67 @@ export const ListingsPage = () => {
 
   const handleCardLeave = () => {
     setHoveredCard(null);
+  };
+
+  // Functions for photo slideshow
+  const handleNextPhoto = (
+    event: React.MouseEvent<HTMLElement>,
+    listingId: string
+  ) => {
+    event.stopPropagation();
+    setCurrentPhotoIndex((prevState) => {
+      const listing = listings.find((l) => l.id === listingId);
+      if (!listing) return prevState;
+
+      const totalPhotos = listing.additionalPhotos.length + 1; // +1 for main photo
+      const currentIndex = prevState[listingId] || 0;
+      const nextIndex = (currentIndex + 1) % totalPhotos;
+
+      return {
+        ...prevState,
+        [listingId]: nextIndex,
+      };
+    });
+  };
+
+  const handlePrevPhoto = (
+    event: React.MouseEvent<HTMLElement>,
+    listingId: string
+  ) => {
+    event.stopPropagation();
+    setCurrentPhotoIndex((prevState) => {
+      const listing = listings.find((l) => l.id === listingId);
+      if (!listing) return prevState;
+
+      const totalPhotos = listing.additionalPhotos.length + 1; // +1 for main photo
+      const currentIndex = prevState[listingId] || 0;
+      const prevIndex = (currentIndex - 1 + totalPhotos) % totalPhotos;
+
+      return {
+        ...prevState,
+        [listingId]: prevIndex,
+      };
+    });
+  };
+
+  const handleSelectPhoto = (
+    event: React.MouseEvent<HTMLElement>,
+    listingId: string,
+    index: number
+  ) => {
+    event.stopPropagation();
+    setCurrentPhotoIndex((prevState) => ({
+      ...prevState,
+      [listingId]: index,
+    }));
+  };
+
+  const getCurrentPhotoUrl = (listing: CarListing): string => {
+    const index = currentPhotoIndex[listing.id] || 0;
+    if (index === 0) {
+      return listing.mainPhoto;
+    }
+    return listing.additionalPhotos[index - 1];
   };
 
   const handleMenuOpen = (
@@ -203,6 +278,7 @@ export const ListingsPage = () => {
         model: doc.model,
         price: doc.price,
         mainPhoto: doc.mainPhoto,
+        additionalPhotos: doc.additionalPhotos || [],
         userId: doc.user?._id || "",
       }));
 
@@ -524,7 +600,7 @@ export const ListingsPage = () => {
                   >
                     <CardMedia
                       component="img"
-                      image={getDisplayUrl(listing.mainPhoto)}
+                      image={getDisplayUrl(getCurrentPhotoUrl(listing))}
                       alt={`${listing.brand} ${listing.model}`}
                       sx={{
                         position: "absolute",
@@ -536,6 +612,97 @@ export const ListingsPage = () => {
                         transform: "scale(1.05)",
                       }}
                     />
+
+                    {/* Navigation arrows - only show if there are additional photos */}
+                    {listing.additionalPhotos.length > 0 && (
+                      <>
+                        <IconButton
+                          onClick={(e) => handlePrevPhoto(e, listing.id)}
+                          sx={{
+                            position: "absolute",
+                            left: 8,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            bgcolor: "rgba(255, 255, 255, 0.7)",
+                            "&:hover": {
+                              bgcolor: "rgba(255, 255, 255, 0.9)",
+                            },
+                            width: 30,
+                            height: 30,
+                            zIndex: 2,
+                            opacity: hoveredCard === listing.id ? 1 : 0,
+                            transition: "opacity 0.3s ease",
+                          }}
+                        >
+                          <ArrowBackIos sx={{ fontSize: 16, ml: 1 }} />
+                        </IconButton>
+
+                        <IconButton
+                          onClick={(e) => handleNextPhoto(e, listing.id)}
+                          sx={{
+                            position: "absolute",
+                            right: 8,
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            bgcolor: "rgba(255, 255, 255, 0.7)",
+                            "&:hover": {
+                              bgcolor: "rgba(255, 255, 255, 0.9)",
+                            },
+                            width: 30,
+                            height: 30,
+                            zIndex: 2,
+                            opacity: hoveredCard === listing.id ? 1 : 0,
+                            transition: "opacity 0.3s ease",
+                          }}
+                        >
+                          <ArrowForwardIos sx={{ fontSize: 16 }} />
+                        </IconButton>
+
+                        {/* Photo indicators */}
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            bottom: 8,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            display: "flex",
+                            gap: 0.5,
+                            zIndex: 2,
+                            opacity: hoveredCard === listing.id ? 1 : 0,
+                            transition: "opacity 0.3s ease",
+                          }}
+                        >
+                          {[listing.mainPhoto, ...listing.additionalPhotos].map(
+                            (_, index) => (
+                              <Box
+                                key={index}
+                                onClick={(e) =>
+                                  handleSelectPhoto(e, listing.id, index)
+                                }
+                                sx={{
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  padding: 0.3,
+                                }}
+                              >
+                                <FiberManualRecord
+                                  sx={{
+                                    fontSize: 8,
+                                    color:
+                                      (currentPhotoIndex[listing.id] || 0) ===
+                                      index
+                                        ? "#1F1DEB"
+                                        : "rgba(255, 255, 255, 0.7)",
+                                  }}
+                                />
+                              </Box>
+                            )
+                          )}
+                        </Box>
+                      </>
+                    )}
                   </Box>
                   <Box sx={{ px: 2, pb: 2 }}>
                     <Typography
