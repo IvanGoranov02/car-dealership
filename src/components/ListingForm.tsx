@@ -39,6 +39,24 @@ interface ListingFormProps {
   mode: "create" | "edit";
 }
 
+// Function to format file names
+const formatFileName = (fileName: string): string => {
+  if (!fileName) return "Photo.jpg";
+
+  // Split filename and extension
+  const lastDotIndex = fileName.lastIndexOf(".");
+  const extension = lastDotIndex !== -1 ? fileName.substring(lastDotIndex) : "";
+  const nameWithoutExtension =
+    lastDotIndex !== -1 ? fileName.substring(0, lastDotIndex) : fileName;
+
+  // Truncate if longer than 10 chars
+  if (nameWithoutExtension.length > 10) {
+    return `${nameWithoutExtension.substring(0, 10)}...${extension}`;
+  }
+
+  return fileName;
+};
+
 export const ListingForm: React.FC<ListingFormProps> = ({
   initialValues,
   onSubmit,
@@ -566,15 +584,9 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                 textAlign: "center",
                               }}
                             >
-                              {mainPhotoFile?.name
-                                ?.split(".")
-                                .slice(0, -1)
-                                .join(".") || "Photo"}
-                              {mainPhotoFile?.name
-                                ? mainPhotoFile.name.substring(
-                                    mainPhotoFile.name.lastIndexOf(".")
-                                  )
-                                : ".jpg"}
+                              {formatFileName(
+                                mainPhotoFile ? mainPhotoFile.name : "Photo.jpg"
+                              )}
                             </Typography>
                             <IconButton
                               size="small"
@@ -642,14 +654,9 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                 textAlign: "center",
                               }}
                             >
-                              {mainPhotoFile
-                                ? `${mainPhotoFile.name
-                                    .split(".")
-                                    .slice(0, -1)
-                                    .join(".")}${mainPhotoFile.name.substring(
-                                    mainPhotoFile.name.lastIndexOf(".")
-                                  )}`
-                                : "Photo 1.jpg"}
+                              {formatFileName(
+                                mainPhotoFile ? mainPhotoFile.name : "Photo.jpg"
+                              )}
                             </Typography>
                             <IconButton
                               size="small"
@@ -828,7 +835,11 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                   marginRight: 1,
                                 }}
                               >
-                                {`Photo ${index + 1}.jpg`}
+                                {formatFileName(
+                                  existingAdditionalPhotos[index]
+                                    .split("/")
+                                    .pop() || `Photo ${index + 1}.jpg`
+                                )}
                               </Typography>
                               <IconButton
                                 size="small"
@@ -886,18 +897,11 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                                   marginRight: 1,
                                 }}
                               >
-                                {additionalPhotoFiles[index]
-                                  ? `${additionalPhotoFiles[index].name
-                                      .split(".")
-                                      .slice(0, -1)
-                                      .join(".")}${additionalPhotoFiles[
-                                      index
-                                    ].name.substring(
-                                      additionalPhotoFiles[
-                                        index
-                                      ].name.lastIndexOf(".")
-                                    )}`
-                                  : `Photo ${index + 1}.jpg`}
+                                {formatFileName(
+                                  additionalPhotoFiles[index]
+                                    ? additionalPhotoFiles[index].name
+                                    : `Photo ${index + 1}.jpg`
+                                )}
                               </Typography>
                               <IconButton
                                 size="small"

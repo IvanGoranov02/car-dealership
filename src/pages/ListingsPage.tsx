@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -20,7 +20,7 @@ import { Header } from "../components/Header";
 import { listingService, imageUtils } from "../services/api";
 import { toast } from "react-toastify";
 import { Car } from "../types";
-// import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import blurSvg from "../assets/blur.svg";
 
@@ -46,9 +46,38 @@ interface ListingsResponse {
   nextPage: number | null;
 }
 
-// Функция за прокси на изображения за избягване на CORS проблеми
+// Function for image proxy to avoid CORS issues
 const getDisplayUrl = (url: string) => {
   return imageUtils.getProxiedImageUrl(url);
+};
+
+// Function to extract file extension from URL
+// Not currently used, kept for potential future use
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getFileExtension = (url: string): string => {
+  try {
+    // Remove URL parameters if any
+    const cleanUrl = url.split("?")[0];
+    // Get filename from URL
+    const fileName = cleanUrl.split("/").pop() || "";
+    // Get extension (everything after the last dot)
+    const extension = fileName.split(".").pop() || "";
+
+    return extension.toUpperCase();
+  } catch {
+    return "";
+  }
+};
+
+// Function to shorten long names
+const shortenName = (brand: string, model: string): string => {
+  const fullName = `${brand} ${model}`;
+
+  if (fullName.length <= 24) {
+    return fullName;
+  }
+
+  return fullName.substring(0, 24) + "...";
 };
 
 export const ListingsPage = () => {
@@ -58,10 +87,37 @@ export const ListingsPage = () => {
     [key: string]: HTMLElement | null;
   }>({});
   const navigate = useNavigate();
+  const { user } = useAuth(); // Access to current user
 
   // State for hover without debug logs
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<string | null>(null);
+
+  // Infinite scroll states
+  const [pageNumber, setPageNumber] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
+  const observer = useRef<IntersectionObserver | null>(null);
+  const itemsPerPage = 12; // Number of cars per page
+
+  const lastElementRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (loading || loadingMore) return;
+      if (observer.current) observer.current.disconnect();
+
+      observer.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasMore) {
+            setPageNumber((prevPageNumber) => prevPageNumber + 1);
+          }
+        },
+        { threshold: 0.5 }
+      );
+
+      if (node) observer.current.observe(node);
+    },
+    [loading, loadingMore, hasMore]
+  );
 
   const handleCardHover = (id: string) => {
     setHoveredCard(id);
@@ -75,11 +131,17 @@ export const ListingsPage = () => {
     event: React.MouseEvent<HTMLElement>,
     listingId: string
   ) => {
-    setAnchorEl({ ...anchorEl, [listingId]: event.currentTarget });
+    setAnchorEl((prevState) => ({
+      ...prevState,
+      [listingId]: event.currentTarget,
+    }));
   };
 
   const handleMenuClose = (listingId: string) => {
-    setAnchorEl({ ...anchorEl, [listingId]: null });
+    setAnchorEl((prevState) => ({
+      ...prevState,
+      [listingId]: null,
+    }));
   };
 
   const handleEdit = (listingId: string) => {
@@ -112,33 +174,58 @@ export const ListingsPage = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const response =
-          (await listingService.getAllListings()) as ListingsResponse;
-        setListings(
-          response.docs.map((doc: Car) => ({
-            id: doc._id!,
-            brand: doc.brand,
-            model: doc.model,
-            price: doc.price,
-            mainPhoto: doc.mainPhoto,
-            userId: doc.user?._id || "",
-          }))
-        );
-      } catch (error) {
-        toast.error("Failed to load listings");
-        console.error("Error loading listings:", error);
-      } finally {
-        setLoading(false);
+  const fetchListings = async (page: number) => {
+    if (page === 1) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
+    try {
+      const response = (await listingService.getAllListings({
+        pageNumber: page,
+        pageSize: itemsPerPage,
+      })) as ListingsResponse;
+
+      const newListings = response.docs.map((doc: Car) => ({
+        id: doc._id!,
+        brand: doc.brand,
+        model: doc.model,
+        price: doc.price,
+        mainPhoto: doc.mainPhoto,
+        userId: doc.user?._id || "",
+      }));
+
+      if (page === 1) {
+        setListings(newListings);
+      } else {
+        setListings((prevListings) => [...prevListings, ...newListings]);
       }
-    };
 
-    fetchListings();
-  }, []);
+      // Check if there are more pages
+      setHasMore(response.hasNextPage);
+    } catch (error) {
+      toast.error("Failed to load listings");
+      console.error("Error loading listings:", error);
+    } finally {
+      if (page === 1) {
+        setLoading(false);
+      } else {
+        setLoadingMore(false);
+      }
+    }
+  };
 
-  if (loading) {
+  useEffect(() => {
+    fetchListings(pageNumber);
+  }, [pageNumber]);
+
+  // Function to check if user can manage the listing
+  const canManageListing = (listingUserId: string): boolean => {
+    return user?._id === listingUserId;
+  };
+
+  if (loading && pageNumber === 1) {
     return (
       <Box sx={{ bgcolor: "#F4F4F7", minHeight: "100vh" }}>
         <Header />
@@ -218,8 +305,15 @@ export const ListingsPage = () => {
           </Box>
 
           <Grid container spacing={3} columns={{ xs: 1, sm: 8, md: 12 }}>
-            {listings.map((listing) => (
-              <Grid item xs={1} sm={4} md={3} key={listing.id}>
+            {listings.map((listing, index) => (
+              <Grid
+                item
+                xs={1}
+                sm={4}
+                md={3}
+                key={listing.id}
+                ref={listings.length === index + 1 ? lastElementRef : null}
+              >
                 <Card
                   sx={{
                     borderRadius: "5px",
@@ -241,42 +335,59 @@ export const ListingsPage = () => {
                   onMouseEnter={() => handleCardHover(listing.id)}
                   onMouseLeave={handleCardLeave}
                 >
-                  <Button
-                    variant="contained"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleMenuOpen(e, listing.id);
-                    }}
-                    sx={{
-                      position: "absolute",
-                      top: 10,
-                      right: 10,
-                      zIndex: 999,
-                      bgcolor: "#1F1DEB",
-                      color: "white",
-                      minWidth: "auto",
-                      p: 0.8,
-                      fontSize: 11,
-                      fontWeight: 800,
-                      borderRadius: 1,
-                      boxShadow: "0px 4px 12px rgba(31, 29, 235, 0.16)",
-                      display: hoveredCard === listing.id ? "flex" : "none",
-                      alignItems: "center",
-                      gap: 0.2,
-                      "&:hover": {
-                        bgcolor: "#1816C7",
-                        boxShadow: "0px 8px 16px rgba(31, 29, 235, 0.24)",
-                      },
-                    }}
-                    startIcon={<Settings sx={{ fontSize: 14 }} />}
-                  >
-                    MANAGE
-                  </Button>
+                  {/* Show Manage button only if user is the owner */}
+                  {canManageListing(listing.userId) && (
+                    <Button
+                      id={`menu-button-${listing.id}`}
+                      aria-controls={
+                        anchorEl[listing.id] ? `menu-${listing.id}` : undefined
+                      }
+                      aria-expanded={anchorEl[listing.id] ? "true" : undefined}
+                      aria-haspopup="true"
+                      variant="contained"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMenuOpen(e, listing.id);
+                      }}
+                      sx={{
+                        position: "absolute",
+                        top: 10,
+                        right: 10,
+                        zIndex: 999,
+                        bgcolor: "#1F1DEB",
+                        color: "white",
+                        minWidth: "auto",
+                        p: 0.8,
+                        fontSize: 11,
+                        fontWeight: 800,
+                        borderRadius: 1,
+                        boxShadow: "0px 4px 12px rgba(31, 29, 235, 0.16)",
+                        display:
+                          hoveredCard === listing.id ||
+                          Boolean(anchorEl[listing.id])
+                            ? "flex"
+                            : "none",
+                        alignItems: "center",
+                        gap: 0.2,
+                        "&:hover": {
+                          bgcolor: "#1816C7",
+                          boxShadow: "0px 8px 16px rgba(31, 29, 235, 0.24)",
+                        },
+                      }}
+                      startIcon={<Settings sx={{ fontSize: 14 }} />}
+                    >
+                      MANAGE
+                    </Button>
+                  )}
 
                   <Menu
+                    id={`menu-${listing.id}`}
                     anchorEl={anchorEl[listing.id]}
                     open={Boolean(anchorEl[listing.id])}
                     onClose={() => handleMenuClose(listing.id)}
+                    MenuListProps={{
+                      "aria-labelledby": `menu-button-${listing.id}`,
+                    }}
                     anchorOrigin={{
                       vertical: "bottom",
                       horizontal: "left",
@@ -387,31 +498,63 @@ export const ListingsPage = () => {
                         mb: 1,
                         textTransform: "uppercase",
                       }}
+                      title={`${listing.brand} ${listing.model}`}
                     >
-                      {listing.brand} {listing.model}
+                      {shortenName(listing.brand, listing.model)}
                     </Typography>
-                    <Typography
-                      variant="body2"
+                    <Box
                       sx={{
-                        color: "#1F1DEB",
-                        display: "block",
-                        fontWeight: 800,
-                        fontFamily: "'Inter', sans-serif",
-                        fontSize: "14px",
-                        textAlign: "left",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                       }}
                     >
-                      {listing.price.toLocaleString()} BGN
-                    </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#1F1DEB",
+                          display: "block",
+                          fontWeight: 800,
+                          fontFamily: "'Inter', sans-serif",
+                          fontSize: "14px",
+                          textAlign: "left",
+                        }}
+                      >
+                        {listing.price.toLocaleString()} BGN
+                      </Typography>
+                    </Box>
                   </Box>
                 </Card>
               </Grid>
             ))}
           </Grid>
+
+          {/* Loading indicator for more cars */}
+          {loadingMore && (
+            <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
+              <CircularProgress sx={{ color: "#1F1DEB" }} size={32} />
+            </Box>
+          )}
+
+          {/* Message when there are no more cars */}
+          {!hasMore && listings.length > 0 && (
+            <Box sx={{ textAlign: "center", my: 4 }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: "#666666",
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: "14px",
+                }}
+              >
+                No more listings to load
+              </Typography>
+            </Box>
+          )}
         </Box>
       </Container>
 
-      {/* Модален прозорец за изтриване */}
+      {/* Delete dialog */}
       {deleteDialogOpen && (
         <Box
           sx={{
