@@ -32,12 +32,6 @@ A modern React application for managing a car dealership, built with TypeScript 
    npm run dev
    ```
 
-## Default Account
-
-For testing purposes, you can use the following credentials:
-
-- Email: i.goranov02@gmail.com
-- Password: 123456
 
 ## Project Structure
 
